@@ -1,4 +1,127 @@
 <odoo>
+
+    <!--      Tree view for the asset list -->
+    <record id="asset_list_tree_view" model="ir.ui.view">
+        <field name="name">asset.list.tree.view</field>
+        <field name="model">account.asset.asset</field>
+        <field name="inherit_id" ref="om_account_asset.view_account_asset_asset_purchase_tree"/>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code"/>
+                <field name="branch"/>
+                <field name="value"/>
+                <field name="value_residual" widget="monetary"/>
+                <field name="currency_id" groups="base.group_multi_currency"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="account_asset_asset_search_view" model="ir.ui.view">
+        <field name="name">asset.asset.search.view</field>
+        <field name="model">account.asset.asset</field>
+        <field name="arch" type="xml">
+            <search string="Asset">
+                 <field name="code" string="Asset Number"
+                       filter_domain="[('code','ilike',self)]"/>
+                <!--                <field name="code" string="code" filter_domain="[('code','ilike',self)]"/>-->
+                <group expand="0" string="Group by">
+                    <filter string="Branch" name="branch" domain="[]" context="{'group_by':'branch'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!--    account asset form inherit-->
+    <record id="om_account_asset_view_form_inherited" model="ir.ui.view">
+        <field name="name">om.account.asset.view.form.inherited</field>
+        <field name="model">account.asset.asset</field>
+        <field name="inherit_id" ref="om_account_asset.view_account_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_id']" position="after">
+                <field name="branch"/>
+<!--                <field name="branch_id"/>-->
+            </xpath>
+            <!--            <xpath expr="//field[@name='name']" position="attributes">-->
+            <!--                <field name="name" attrs="{'readonly': [('state', 'in', ('open', 'inuse'))]}"/>-->
+            <!--            </xpath>-->
+            <xpath expr="//field[@name='category_id']" position="before">
+                <field name="image_small" widget="image" options="{'size': (100, 100)}"/>
+            </xpath>
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="asset_id_no"/>
+
+            </xpath>
+            <xpath expr="//form/header" position="replace">
+                <header>
+                    <button name="button_procurement_register_fixed_asset" states="draft" string="Fixed Asset"
+                            type="object"
+                            class="oe_highlight"
+                            groups="asset_management.asset_procurement_ho,asset_management.asset_procurement_branch"/>
+                    <button name="button_procurement_register_non_fixed_asset" states="draft" string="Non Fixed Asset"
+                            type="object"
+                            groups="asset_management.asset_procurement_ho,asset_management.asset_procurement_branch"/>
+                    <button name="button_finance_review" states="fixed" string="Finance Review" type="object"
+                            class="oe_highlight"
+                            groups="asset_management.asset_fm_ho,asset_management.asset_fm_branch"/>
+                    <button name="button_finance_back_to_draft" states="fixed" string="Back to Procurement"
+                            type="object"
+                            groups="asset_management.asset_fm_ho,asset_management.asset_fm_branch"/>
+                    <button name="validate" states="review,non_fixed" string="Approve Asset" type="object"
+                            class="oe_highlight"
+                            groups="asset_management.asset_cd,asset_management.asset_dm"/>
+                    <button name="back_to_draft" states="review,non_fixed" string="Review Asset" type="object"
+                            groups="asset_management.asset_cd,asset_management.asset_dm"/>
+                    <button name="button_reject" states="review,non_fixed" string="Reject" type="object"
+                            groups="asset_management.asset_cd,asset_management.asset_dm" class="oe_highlight"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,review,open,inuse,repair,replace,close"/>
+                </header>
+            </xpath>
+            <xpath expr="//notebook/page[@name='depreciation']" position="after">
+                <page string="Supportive Document">
+                    <field name="supportive_document_line_ids">
+                        <tree editable="bottom">
+                            <field name="document_name"/>
+                            <field name="attachment"/>
+                            <field name="attachment_name" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Description">
+                    <field name="description_line_ids">
+                        <tree editable="bottom">
+                            <field name="title"/>
+                            <field name="description"/>
+                            <field name="description_ids" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Insurance">
+                    <field name="insurance_model_line_ids">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                            <field name="date"/>
+                            <field name="expire_date"/>
+                            <field name="insurance_ids" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Services">
+                    <field name="service_model_line_ids">
+                        <tree editable="bottom">
+                            <field name="service_date"/>
+                            <field name="next_service"/>
+                            <field name="service_ids" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!--    Tree view for the fixed asset report -->
     <record id="fixed_asset_tree_view" model="ir.ui.view">
         <field name="name">fixed.asset.tree.view</field>
         <field name="model">account.asset.asset</field>
@@ -7,6 +130,7 @@
                 <field name="name" string="Asset Name"/>
                 <field name="category_id" string="Class of Asset"/>
                 <field name="code" string="Asset No."/>
+                <field name="branch" string="Branch"/>
                 <field name="value" string="Original Cost"/>
                 <field name="cummulative_amount" string="Accumulated Depreciation"/>
                 <field name="value_residual" string="Net Book Value"/>
@@ -24,6 +148,11 @@
         <field name="arch" type="xml">
             <search string="Fixed Assets Report Search">
                 <field name="name" string="Asset"/>
+                <!--                <field name="branch" string="Branch"/>-->
+                <!--                <field name="code" string="Asset Number"/>-->
+                <field name="code" string="Asset Number" domain="[('code','ilike',self)]"/>
+<!--                <field name="branch" string="branch" domain="[('branch','ilike',self)]"/>-->
+<!--                <filter string="Branch" name="branch" context="{'group_by': 'branch'}"/>-->
                 <field name="date" string="Purchase Date"/>
                 <filter string="Current" name="current" domain="[('state','in', ('draft','open'))]"
                         help="Assets in draft and open states"/>
@@ -31,6 +160,7 @@
                 <field name="category_id" string="Asset Category"/>
                 <field name="partner_id" filter_domain="[('partner_id','child_of',self)]"/>
                 <group expand="0" string="Group By...">
+                    <!--                    <filter string="Branch" name="branch" domain="[]" context="{'group_by':'branch'}"/>-->
                     <filter string="Purchase Date" name="month" domain="[]" context="{'group_by':'date'}"/>
                     <filter string="Asset Category" name="category" domain="[]" context="{'group_by':'category_id'}"/>
                 </group>
@@ -52,25 +182,6 @@
         </field>
     </record>
 
-    <record id="om_account_asset_view_form_inherited" model="ir.ui.view">
-        <field name="name">om.account.asset.view.form.inherited</field>
-        <field name="model">account.asset.asset</field>
-        <field name="inherit_id" ref="om_account_asset.view_account_asset_asset_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//notebook/page[@name='depreciation']" position="after">
-                <page string="Supportive Document">
-                    <field name="supportive_document_line_ids">
-                        <tree editable="bottom">
-                            <field name="document_name"/>
-                            <field name="attachment"/>
-                            <field name="attachment_name" invisible="1"/>
-                        </tree>
-                    </field>
-                </page>
-            </xpath>
-        </field>
-    </record>
-
     <record id="om_account_asset_view_account_asset_search_inherited" model="ir.ui.view">
         <field name="name">om.account.asset.view.account.asset.search.inherited</field>
         <field name="model">account.asset.asset</field>
@@ -82,21 +193,139 @@
             <xpath expr="//filter[@name='closed']" position="after">
                 <filter string="Draft" name="draft" domain="[('state','=', 'draft')]" help="Assets in draft state"/>
             </xpath>
+        </field>
+        <field name="search_asset_branch" ref="account_asset_asset_search_view"/>
+    </record>
 
+    <!--    Printing asset report list -->
+    <record model="ir.ui.view" id="asset_report_wizard">
+        <field name="name">Asset List</field>
+        <field name="model">asset.list.wizard</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Asset List">
+                <group>
+                    <field name="is_hq_branch" invisible="1"/>
+                    <field name="branch_id" options="{'no_create_edit': True, 'no_create': True, 'no_open': True}" attrs="{'readonly': [('is_hq_branch', '=', False)]}"/>
+                    <field name="department_id" options="{'no_create_edit': True, 'no_create': True, 'no_open': True}"/>
+                </group>
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                    </group>
+                    <group>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="get_report" string="Get Report" type="object" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
         </field>
     </record>
 
-    <menuitem name="Asset Management" id="asset_management.menu_root"/>
+    <record model="ir.ui.view" id="view_asset_list_wizard_excel">
+        <field name="name">view.asset.list.excel</field>
+        <field name="model">asset.list.excel</field>
+        <field name="arch" type="xml">
+            <form string="Download Your Asset Report Here">
+                <field name="name" invisible="1"/>
+                <field name="file_download" widget="download_link" filename="name"/>
+            </form>
+        </field>
+    </record>
+
+    <!--    Asset Custodian Wizard Form -->
+    <record model="ir.ui.view" id="asset_custodian_wizard">
+        <field name="name">Asset Custodian</field>
+        <field name="model">account.asset.assign.wizard</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Asset List">
+                <group>
+                    <field name="department_id" options="{'no_create_edit': True, 'no_create': True, 'no_open': True}"/>
+                    <!--                    <field name="print_date"/>-->
+                </group>
+                <!--                <group>-->
+                <!--                    <group>-->
+                <!--                        <field name="date_from"/>-->
+                <!--                    </group>-->
+                <!--                    <group>-->
+                <!--                        <field name="date_to"/>-->
+                <!--                    </group>-->
+                <!--                </group>-->
+                <footer>
+                    <button name="get_report" string="Get Report" type="object" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_asset_custodian_wizard_excel">
+        <field name="name">view.asset.list.excel</field>
+        <field name="model">asset.custodian.excel</field>
+        <field name="arch" type="xml">
+            <form string="Download Your Asset Report Here">
+                <field name="name" invisible="1"/>
+                <field name="file_download" widget="download_link" filename="name"/>
+            </form>
+        </field>
+    </record>
+
+    <act_window id="action_asset_print_report"
+                name="Assets Report Excel"
+                res_model="asset.list.wizard"
+                view_mode="form"
+                target="new"
+    />
+
+    <act_window id="action_asset_custodian_print_report"
+                name="Custodian Report"
+                res_model="account.asset.assign.wizard"
+                view_mode="form"
+                target="new"
+    />
+
+    <menuitem name="Asset Management"
+              id="asset_management.menu_root"/>
     <menuitem parent="asset_management.menu_root"
-              name="Asset Types"
+              name="Categories"
               id="menu_asset_types"
               action="om_account_asset.action_account_asset_asset_list_normal_purchase"
               sequence="2"
-              groups="asset_management.asset_hod,asset_management.asset_fm,asset_management.asset_md"/>
-    <menuitem name="Assets" id="menu_assets" action="om_account_asset.action_account_asset_asset_form"
-              parent="asset_management.menu_root" sequence="3"
-              groups="asset_management.asset_hod,asset_management.asset_fm,asset_management.asset_md"/>
-    <menuitem name="Fixed Assets Report" id="menu_fixed_assets_report" action="action_fixed_assets"
-              parent="asset_management.menu_root" sequence="7"
-              groups="asset_management.asset_hod,asset_management.asset_fm,asset_management.asset_md"/>
+              groups="asset_management.asset_cd,asset_management.asset_dm,asset_management.asset_fm_ho,asset_management.asset_fm_branch,asset_management.asset_procurement_branch,asset_management.asset_procurement_ho"/>
+    <menuitem name="Recording"
+              id="menu_assets"
+              action="om_account_asset.action_account_asset_asset_form"
+              parent="asset_management.menu_root"
+              sequence="3"
+              groups="asset_management.asset_cd,asset_management.asset_dm,asset_management.asset_fm_ho,asset_management.asset_fm_branch,asset_management.asset_procurement_branch,asset_management.asset_procurement_ho"/>
+    <menuitem name="Reports"
+              id="assets_report_id"
+              action="action_fixed_assets"
+              parent="asset_management.menu_root"
+              sequence="9"
+              groups="asset_management.asset_lm,asset_management.asset_cd,asset_management.asset_fm_ho,asset_management.asset_fm_branch,asset_management.asset_dm,asset_management.asset_procurement_ho,asset_management.asset_procurement_branch"/>
+    <menuitem name="Fixed Assets Report"
+              id="menu_fixed_assets_report"
+              action="action_fixed_assets"
+              parent="asset_management.assets_report_id"
+              sequence="1"
+              groups="asset_management.asset_lm,asset_management.asset_cd,asset_management.asset_fm_ho,asset_management.asset_fm_branch,asset_management.asset_procurement_ho"/>
+
+
+    <menuitem action="action_asset_print_report"
+              id="assets_report_print"
+              sequence="30"
+              groups="asset_management.asset_lm,asset_management.asset_cd,asset_management.asset_fm_ho,asset_management.asset_fm_branch,asset_management.asset_procurement_ho,asset_management.asset_procurement_branch"
+              parent="asset_management.assets_report_id"/>
+
+    <menuitem action="action_asset_custodian_print_report"
+              id="assets_custodian_report_print"
+              sequence="31"
+              groups="asset_management.asset_lm,asset_management.asset_cd,asset_management.asset_fm_ho,asset_management.asset_fm_branch,asset_management.asset_procurement_ho"
+              parent="asset_management.assets_report_id"/>
+
 </odoo>

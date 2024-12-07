@@ -1,30 +1,71 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-asset_type_hod,Asset Type HOD Group,model_account_asset_category,asset_hod,1,1,1,1
-asset_type_dfa,Asset Type DFA Group,model_account_asset_category,asset_fm,1,1,1,1
-asset_type_es,Asset Type ES Group,model_account_asset_category,asset_md,1,1,1,1
+asset_type_procurement_ho,Asset Type procurement HO Group,model_account_asset_category,asset_procurement_ho,1,1,1,1
+asset_type_procurement_branch,Asset Type procurement Branch Group,om_account_asset.model_account_asset_category,asset_procurement_branch,1,1,1,0
+asset_type_fm_ho,Asset Type HO Group,model_account_asset_category,asset_fm_ho,1,1,1,0
+asset_type_fm_branch,Asset Type branch Group,model_account_asset_category,asset_fm_branch,1,1,1,0
+asset_type_cd,Asset Type CD Group,model_account_asset_category,asset_cd,1,1,1,1
+asset_type_dm,Asset Type DM Group,model_account_asset_category,asset_dm,1,1,1,1
+asset_type_all_staff,Asset Type all_staff Group,model_account_asset_category,all_staff,1,1,1,0
+asset_type_ict_officer,Asset Type ict officer Group,model_account_asset_category,all_ict_officer,1,1,1,0
 
-asset_management_hod,Asset HOD Group,model_account_asset_asset,asset_hod,1,1,1,1
-asset_management_dfa,Asset DFA Group,model_account_asset_asset,asset_fm,1,1,1,1
-asset_management_es,Asset ES Group,model_account_asset_asset,asset_md,1,1,1,1
+asset_management_staff,Asset staff Group,model_account_asset_asset,asset_management.all_staff,1,1,1,1
+asset_management_ad,Asset ad Group,model_account_asset_asset,asset_management.asset_dm,1,1,1,1
+asset_management_cd,Asset cd Group,model_account_asset_asset,asset_management.asset_cd,1,1,1,1
+asset_management_dfa,Asset ho Group,model_account_asset_asset,asset_management.asset_procurement_ho,1,1,1,1
+asset_management_branch,Asset branch Group,model_account_asset_asset,asset_management.asset_procurement_branch,1,1,1,1
+asset_management_finance_ho,Asset ho fincance Group,model_account_asset_asset,asset_management.asset_fm_ho,1,1,0,0
+asset_management_finance_branch,Asset finance branch Group,model_account_asset_asset,asset_management.asset_fm_branch,1,1,0,0
 
-asset_assign_hod,Asset Assign HOD Group,model_account_asset_assign,asset_hod,1,1,1,1
-asset_assign_dfa,Asset Assign DFA Group,model_account_asset_assign,asset_fm,1,1,1,1
-asset_assign_es,Asset Assign ES Group,model_account_asset_assign,asset_md,1,1,1,1
+asset_assign_hod,Asset Assign HOD Group,model_account_asset_assign,,1,1,1,1
+asset_assign_dfa,Asset Assign DFA Group,model_account_asset_assign,,1,1,1,1
+asset_assign_es,Asset Assign ES Group,model_account_asset_assign,,1,1,1,1
 
-asset_dispose_hod,Asset Dispose HOD Group,model_account_asset_disposal,asset_hod,1,1,1,1
-asset_dispose_dfa,Asset Dispose DFA Group,model_account_asset_disposal,asset_fm,1,1,1,1
-asset_dispose_es,Asset Dispose ES Group,model_account_asset_disposal,asset_md,1,1,1,1
+asset_dispose_hod,Asset Dispose HOD Group,model_account_asset_disposal,,1,1,1,1
+asset_dispose_dfa,Asset Dispose DFA Group,model_account_asset_disposal,,1,1,1,1
+asset_dispose_es,Asset Dispose ES Group,model_account_asset_disposal,,1,1,1,1
 
-asset_dispose_lines_hod,Asset Dispose Lines HOD Group,model_account_asset_disposal_lines,asset_hod,1,1,1,1
-asset_dispose_lines_dfa,Asset Dispose Lines DFA Group,model_account_asset_disposal_lines,asset_fm,1,1,1,1
-asset_dispose_lines_es,Asset Dispose Lines ES Group,model_account_asset_disposal_lines,asset_md,1,1,1,1
+asset_dispose_lines_hod,Asset Dispose Lines HOD Group,model_account_asset_disposal_lines,,1,1,1,1
+asset_dispose_lines_dfa,Asset Dispose Lines DFA Group,model_account_asset_disposal_lines,,1,1,1,1
+asset_dispose_lines_es,Asset Dispose Lines ES Group,model_account_asset_disposal_lines,,1,1,1,1
 
-account_asset_reevaluation_hod,Asset Reevaluation HOD Group,model_account_asset_reevaluation,asset_hod,1,1,1,1
-account_asset_reevaluation_dfa,Asset Reevaluation DFA Group,model_account_asset_reevaluation,asset_fm,1,1,1,1
-account_asset_reevaluation_es,Asset Reevaluation ES Group,model_account_asset_reevaluation,asset_md,1,1,1,1
+account_asset_reevaluation_hod,Asset Reevaluation HOD Group,model_account_asset_reevaluation,,1,1,1,1
+account_asset_reevaluation_dfa,Asset Reevaluation DFA Group,model_account_asset_reevaluation,,1,1,1,1
+account_asset_reevaluation_es,Asset Reevaluation ES Group,model_account_asset_reevaluation,,1,1,1,1
 
-account_asset_reevaluation_depreciation_lines_hod,Asset Reevaluation Deprec Lines HOD Group,model_account_asset_reevaluation_depreciation_lines,asset_hod,1,1,1,1
-account_asset_asset_reevaluation_depreciation_lines_dfa,Asset Reevaluation Deprec Lines DFA Group,model_account_asset_reevaluation_depreciation_lines,asset_fm,1,1,1,1
-account_asset_asset_reevaluation_depreciation_lines_es,Asset Reevaluation Deprec Lines ES Group,model_account_asset_reevaluation_depreciation_lines,asset_md,1,1,1,1
+account_asset_reporting,Asset Reporting,model_asset_reporting_damage,,1,1,1,1
 
-account_asset_asset_account_asset_support_document_line,Asset account.asset.support.document.line Group,model_account_asset_support_document_line,,1,1,1,1
+account_asset_reporting_damage_line,Asset Reporting Damage Line,model_asset_reporting_damage_line,,1,1,1,1
+
+account_asset_reporting_lost,Asset Reporting lost,model_asset_reporting_lost,,1,1,1,1
+
+account_asset_transfer_access,Asset transer,model_account_asset_transfer,,1,1,1,1
+
+account_asset_handover_access,Asset handover,model_account_asset_handover,,1,1,1,1
+
+account_asset_handover_lines_access,Asset handover lines,model_account_asset_transfer_lines,,1,1,1,1
+
+account_asset_chechout,Asset Checkout,model_account_asset_checkout,,1,1,1,1
+
+account_asset_insurance_line,Asset insurance line,model_insurance_model_line,,1,1,1,1
+
+account_asset_service_model_line,Asset service line,model_service_model_line,,1,1,1,1
+
+account_asset_service_model_line,Asset service line,model_service_model_line,,1,1,1,1
+
+account_asset_asset_list_excel,Asset list excel,model_asset_list_excel,,1,1,1,1
+
+account_asset_list_wizard,Asset list wizard,model_asset_list_wizard,,1,1,1,1
+
+account_asset_support_document_line,account asset support Checkout,model_account_asset_support_document_line,,1,1,1,1
+
+account_asset_assign_category_line,account asset assign category line,model_account_asset_assign_category_line,,1,1,1,1
+
+account_asset_reevaluation_depreciation_lines_hod,Asset Reevaluation Deprec Lines HOD Group,model_account_asset_reevaluation_depreciation_lines,,1,1,1,1
+account_asset_asset_reevaluation_depreciation_lines_dfa,Asset Reevaluation Deprec Lines DFA Group,model_account_asset_reevaluation_depreciation_lines,,1,1,1,1
+account_asset_asset_reevaluation_depreciation_lines_es,Asset Reevaluation Deprec Lines ES Group,model_account_asset_reevaluation_depreciation_lines,,1,1,1,1
+
+account_asset_hand_over_lines,account asset hand over lines,model_account_asset_hand_over_lines,,1,1,1,1
+
+account_asset_description_line,account asset description.lines,model_description_line,,1,1,1,1
+
+account_damage_line_assets_rel,account asset damage.line.assets.rel,model_damage_line_assets_rel,,1,1,1,1

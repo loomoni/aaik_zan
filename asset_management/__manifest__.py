@@ -18,16 +18,22 @@
     'version': '1.0',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','account','om_account_asset'],
+    'depends': ['base', 'account', 'om_account_asset', 'report_xlsx'],
 
     # always loaded
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'reports/report.xml',
+        'reports/report_template.xml',
         'views/views.xml',
         'views/templates.xml',
         'views/asset_assign.xml',
         'views/asset_disposal.xml',
+        'views/asset_reporting.xml',
+        'views/asset_transfer.xml',
+        'views/asset_handover.xml',
+        'views/assets_checkout.xml',
         'views/asset_reevaluation.xml',
     ],
     # only loaded in demonstration mode

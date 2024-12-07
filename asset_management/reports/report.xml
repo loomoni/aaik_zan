@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <report
+            id="asset_management_qr_code"
+            model="account.asset.asset"
+            string="Asset Barcode"
+            menu="True"
+            report_type="qweb-pdf"
+            name="asset_management.asset_management_qr_code_template"
+            file="asset_management.asset_management_qr_code_template"
+    />
+
+    <report
+            id="asset_custodian_report"
+            model="account.asset.assign"
+            string="Asset Custodian Report"
+            menu="True"
+            report_type="qweb-pdf"
+            name="asset_management.asset_custodian_report_template"
+            file="asset_management.asset_custodian_report_template"
+    />
+
+    <report
+            id="asset_custodian_report_excel"
+            model="account.asset.assign"
+            string="Custodian Report"
+            menu="True"
+            report_type="xlsx"
+            name="asset_management.asset_custodian_report_xls"
+            file="asset_management.asset_custodian_report_xls"
+    />
+
+        <report
+            id="asset_reporting_damage_report_pdf"
+            model="asset.reporting.damage"
+            string="Report"
+            menu="True"
+            report_type="qweb-pdf"
+            name="asset_management.asset_reporting_damage_report_template"
+            file="asset_management.asset_reporting_damage_report_template"
+    />
+</odoo>

@@ -2,19 +2,28 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare, float_is_zero
 
+
 class AssetDisposal(models.Model):
     _name = 'account.asset.disposal'
     _rec_name = 'name'
     _description = "Asset Disposal"
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
+    # STATE_SELECTION = [
+    #     ("draft", "Draft"),
+    #     ("fm_approved", "Procurement Approved"),
+    #     ("asset_evaluation", "Asset Evaluation"),
+    #     ("asset_evaluated", "Asset Evaluated"),
+    #     ("md_approved", "AD Manager/CD Approved"),
+    #     ("asset_disposed", "Asset Disposed"),
+    #     ("rejected", "Rejected"),
+    # ]
+
     STATE_SELECTION = [
         ("draft", "Draft"),
-        ("fm_approved", "FM Approved"),
-        ("asset_evaluation", "Asset Evaluation"),
-        ("asset_evaluated", "Asset Evaluated"),
-        ("md_approved", "MD Approved"),
-        ("asset_disposed", "Asset Disposed"),
+        ("procurement_evaluate", "Procurement Evaluate"),
+        ("fm_review", "FM Reviewed"),
+        ("ad_manager_approve", "AD Manager/ Country Director Approve "),
         ("rejected", "Rejected"),
     ]
 
@@ -24,12 +33,20 @@ class AssetDisposal(models.Model):
         if lossgain is not None:
             return lossgain.id
 
+    def _default_employee(self):
+        employee = self.env['hr.employee'].sudo().search(
+            [('user_id', '=', self.env.uid)], limit=1)
+        if employee:
+            return employee.id
+
     date_created = fields.Date('Date / Time', readonly=True, required=True, index=True,
                                default=fields.date.today(), store=True)
-    name = fields.Char(string='Reference',required=True)
+    name = fields.Char(string='Reference', required=True)
+    employee_id = fields.Many2one('hr.employee', 'Employee Name', default=_default_employee, readonly=True)
     state = fields.Selection(STATE_SELECTION, index=True, track_visibility='onchange', required=True, copy=False,
                              default='draft')
-    account_id = fields.Many2one('account.account', string='Gain/Loss on Sale of Asset Account', required=True, default=_default_loss_gain_account)
+    account_id = fields.Many2one('account.account', string='Gain/Loss on Sale of Asset Account', required=True,
+                                 default=_default_loss_gain_account)
     line_ids = fields.One2many('account.asset.disposal.lines', 'disposal_id', string='Asset Disposal Lines', store=True)
     total_disposal_amount = fields.Float(string='Total Disposal Amount', compute='_compute_total_disposal_amount')
     evaluation_report = fields.Binary(attachment=True, store=True, string='Upload Asset Evaluation Report')
@@ -48,7 +65,7 @@ class AssetDisposal(models.Model):
 
     @api.multi
     def button_fm_approve(self):
-        self.write({'state': 'fm_approved'})
+        self.write({'state': 'fm_review'})
         for lin in self.line_ids:
             lin.write({'check_evaluation': True})
         checkEvaluation = False
@@ -57,15 +74,12 @@ class AssetDisposal(models.Model):
                 checkEvaluation = True
                 break
         if checkEvaluation is True:
-            self.write({'state': 'asset_evaluation'})
+            self.write({'state': 'fm_review'})
         else:
-            self.write({'state': 'asset_evaluated'})
+            self.write({'state': 'fm_review'})
         return True
 
-    @api.multi
-    def button_evaluate(self):
-        self.write({'state': 'asset_evaluated'})
-        return True
+
 
     @api.multi
     def button_md_approve(self):
@@ -73,8 +87,13 @@ class AssetDisposal(models.Model):
         return True
 
     @api.multi
+    def button_procurement_evaluate(self):
+        self.write({'state': 'procurement_evaluate'})
+        return True
+
+    @api.multi
     def button_dispose(self):
-        #handle account moves for disposal and active false for disposed assets
+        # handle account moves for disposal and active false for disposed assets
         created_moves = self.env['account.move']
         for line in self.line_ids:
             category_id = line.asset_id.category_id
@@ -88,7 +107,8 @@ class AssetDisposal(models.Model):
                 line.evaluated_disposal_amount, company_currency, line.asset_id.company_id, depreciation_date)
             asset_name = line.asset_id.name + ' (%s)' % (len(line.asset_id.depreciation_line_ids))
             if line.disposal_type == "dispose":
-                unposted_depreciation_line_ids = line.asset_id.depreciation_line_ids.filtered(lambda x: not x.move_check)
+                unposted_depreciation_line_ids = line.asset_id.depreciation_line_ids.filtered(
+                    lambda x: not x.move_check)
                 if unposted_depreciation_line_ids:
                     old_values = {
                         'method_end': line.asset_id.method_end,
@@ -111,7 +131,8 @@ class AssetDisposal(models.Model):
                         'depreciation_date': today,
                     }
                     commands.append((0, False, vals))
-                    line.asset_id.write({'depreciation_line_ids': commands, 'method_end': today, 'method_number': sequence})
+                    line.asset_id.write(
+                        {'depreciation_line_ids': commands, 'method_end': today, 'method_number': sequence})
                     tracked_fields = self.env['account.asset.asset'].fields_get(['method_number', 'method_end'])
                     changes, tracking_value_ids = line.asset_id._message_track(tracked_fields, old_values)
                     if changes:
@@ -192,7 +213,8 @@ class AssetDisposal(models.Model):
                         'name': asset_name,
                         'account_id': category_id.account_asset_id.id,
                         'debit': 0.0 if float_compare(amount, 0.0, precision_digits=prec) > 0 else -amount,
-                        'credit': line.original_disposal_amount if float_compare(amount, 0.0, precision_digits=prec) > 0 else 0.0,
+                        'credit': line.original_disposal_amount if float_compare(amount, 0.0,
+                                                                                 precision_digits=prec) > 0 else 0.0,
                         'partner_id': line.partner_id.id if line.partner_id else False,
                         'analytic_account_id': account_analytic_id.id if category_id.type == 'sale' else False,
                         'analytic_tag_ids': [(6, 0, analytic_tag_ids.ids)] if category_id.type == 'sale' else False,
@@ -204,7 +226,7 @@ class AssetDisposal(models.Model):
                         'ref': line.asset_id.code,
                         'date': depreciation_date or False,
                         'journal_id': line.journal_id.id,
-                        'line_ids': [(0, 0, move_line_1), (0, 0, move_line_2),(0, 0, move_line_3)],
+                        'line_ids': [(0, 0, move_line_1), (0, 0, move_line_2), (0, 0, move_line_3)],
                     }
                     move = self.env['account.move'].create(move_vals)
                     line.write({'move_id': move.id})
@@ -214,7 +236,8 @@ class AssetDisposal(models.Model):
                         'name': asset_name,
                         'account_id': line.account_id.id,
                         'credit': 0.0 if float_compare(amount, 0.0, precision_digits=prec) > 0 else -amount,
-                        'debit': line.evaluated_disposal_amount if float_compare(amount, 0.0, precision_digits=prec) > 0 else 0.0,
+                        'debit': line.evaluated_disposal_amount if float_compare(amount, 0.0,
+                                                                                 precision_digits=prec) > 0 else 0.0,
                         'partner_id': line.partner_id.id if line.partner_id else False,
                         'analytic_account_id': account_analytic_id.id if category_id.type == 'purchase' else False,
                         'analytic_tag_ids': [(6, 0, analytic_tag_ids.ids)] if category_id.type == 'purchase' else False,
@@ -226,7 +249,7 @@ class AssetDisposal(models.Model):
                         'account_id': self.account_id.id,
                         'credit': 0.0 if float_compare(amount, 0.0, precision_digits=prec) > 0 else -amount,
                         'debit': loss if float_compare(amount, 0.0,
-                                                                                 precision_digits=prec) > 0 else 0.0,
+                                                       precision_digits=prec) > 0 else 0.0,
                         'partner_id': line.partner_id.id if line.partner_id else False,
                         'analytic_account_id': account_analytic_id.id if category_id.type == 'purchase' else False,
                         'analytic_tag_ids': [(6, 0, analytic_tag_ids.ids)] if category_id.type == 'purchase' else False,
@@ -287,10 +310,8 @@ class AssetDisposal(models.Model):
                     line.write({'move_id': move.id})
 
             line.asset_id.write({'state': 'close'})
-        self.write({'state': 'asset_disposed'})
+        self.write({'state': 'ad_manager_approve'})
         return True
-
-
 
 
 class AssetDisposalLines(models.Model):
@@ -301,14 +322,18 @@ class AssetDisposalLines(models.Model):
 
     DISPOSAL_TYPE = [
         ("sell", "SELL"),
+        ("donation", "Donation"),
+        ("transfer", "Transfer"),
         ("dispose", "DISPOSE"),
     ]
 
-    disposal_id = fields.Many2one('account.asset.disposal', string='Asset Disposal', index=True, readonly=True, store=True)
-    asset_id = fields.Many2one('account.asset.asset', string='Asset', required=True, domain=[('state','=','open')])
+    disposal_id = fields.Many2one('account.asset.disposal', string='Asset Disposal', index=True, readonly=True,
+                                  store=True)
+    asset_id = fields.Many2one('account.asset.asset', string='Asset', required=True, domain=[('state', '=', 'open')])
     disposal_type = fields.Selection(DISPOSAL_TYPE, index=True, track_visibility='onchange', required=True, copy=False,
-                             default='sell')
+                                     default='sell')
     original_disposal_amount = fields.Float(string='Original Disposal Amount')
+    reason_for_disposal = fields.Text(string='Reason for Disposal')
     evaluated_disposal_amount = fields.Float(string='Evaluated Disposal Amount')
     partner_id = fields.Many2one('res.partner', string='Sold To')
     move_id = fields.Many2one('account.move', string='Disposal Entry')
@@ -326,7 +351,7 @@ class AssetDisposalLines(models.Model):
         if self.original_disposal_amount <= 500:
             self.evaluated_disposal_amount = self.original_disposal_amount
 
-    @api.onchange('asset_id','disposal_type')
+    @api.onchange('asset_id', 'disposal_type')
     def onchange_asset_id_disposal_type(self):
         if self.asset_id and self.disposal_type == 'dispose':
             self.account_id = self.asset_id.category_id.account_depreciation_expense_id.id
@@ -342,5 +367,3 @@ class AssetDisposalLines(models.Model):
                 [('name', 'like', 'Asset')], limit=1)
             if debitJournal is not None:
                 self.journal_id = debitJournal.id
-
-

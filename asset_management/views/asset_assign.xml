@@ -1,80 +1,147 @@
 <odoo>
 
     <record id="asset_assign_tree_view" model="ir.ui.view">
-      <field name="name">asset.assign.tree.view</field>
-      <field name="model">account.asset.assign</field>
-      <field name="arch" type="xml">
-          <tree string="Asset Assignment">
-               <field name="date_created"/>
-              <field name="assignment_no"/>
-              <field name="assigned_by"/>
-              <field name="state"/>
-          </tree>
-      </field>
+        <field name="name">asset.assign.tree.view</field>
+        <field name="model">account.asset.assign</field>
+        <field name="arch" type="xml">
+            <tree string="Asset Custodian">
+                <field name="asset_name"/>
+                <field name="asset_category"/>
+                <field name="asset_number"/>
+                <field name="asset_branch"/>
+                <field name="assigned_person"/>
+                <field name="state"/>
+            </tree>
+        </field>
     </record>
 
-  <record id="asset_assign_search_view" model="ir.ui.view">
-    <field name="name">asset.assign.search.view</field>
-     <field name="model">account.asset.assign</field>
-    <field name="arch" type="xml">
-        <search string="asset assign search">
-            <field name="assignment_no" string="assignment_no" filter_domain="[('assignment_no','ilike',self)]"/>
-            <field name="assigned_person" string="assigned_person" filter_domain="[('assigned_person','ilike',self)]"/>
-        </search>
-    </field>
-  </record>
+    <record id="asset_assign_search_view" model="ir.ui.view">
+        <field name="name">asset.assign.search.view</field>
+        <field name="model">account.asset.assign</field>
+        <field name="arch" type="xml">
+            <search string="asset assign search">
+                <field name="assignment_no" string="assignment_no" filter_domain="[('assignment_no','ilike',self)]"/>
+                <field name="assigned_person" string="assigned_person"
+                       filter_domain="[('assigned_person','ilike',self)]"/>
+            </search>
+        </field>
+    </record>
 
-   <record id="asset_assign_form_view" model="ir.ui.view">
+    <record id="asset_assign_form_view" model="ir.ui.view">
         <field name="name">asset.assign.form.view</field>
         <field name="model">account.asset.assign</field>
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="button_assign" states="draft" string="Assign" type="object" class="oe_highlight"
-                            groups="asset_management.asset_hod,asset_management.asset_fm,asset_management.asset_md"/>
+                    <button name="button_staff_or_line_manager_request" states="draft" string="Submit Request"
+                            type="object"
+                            class="oe_highlight"
+                    />
+                    <button name="button_line_manager_review" states="send_request" string="Line Manager Review"
+                            type="object" class="oe_highlight"
+                            groups="asset_management.asset_lm"/>
+                    <button name="button_procurement_assign" states="line_manager" string="Procurement Assign"
+                            type="object" class="oe_highlight"
+                            groups="asset_management.asset_procurement_ho,asset_management.asset_procurement_branch"/>
+                    <button name="button_procurement_back_to_line_manager" states="line_manager"
+                            string="Back To Line Manager"
+                            type="object"
+                            groups="asset_management.asset_procurement_ho,asset_management.asset_procurement_branch"/>
+                    <button name="button_procurement_reject" states="line_manager" string="Reject"
+                            type="object"
+                            groups="asset_management.asset_procurement_ho,asset_management.asset_procurement_branch"/>
+                    <button name="button_assign" states="procurement" string="Approve to Assignment" type="object"
+                            class="oe_highlight"
+                            groups="asset_management.asset_dm,asset_management.asset_cd"/>
+                    <button name="button_back_to_procurement" states="procurement" string="Back To Procurement"
+                            type="object"
+                            groups="asset_management.asset_dm,asset_management.asset_cd"/>
+                    <button name="button_procurement_reject" states="procurement" string="Reject"
+                            type="object"
+                            groups="asset_management.asset_dm,asset_management.asset_cd"/>
+                    <button name="get_custodian_report" states="" string="Custodian Report"
+                            type="object"
+                            groups="asset_management.asset_procurement_ho,asset_management.asset_procurement_branch,asset_management.asset_dm,asset_management.asset_cd"/>
                     <button name="button_unassign" states="assigned" string="Unassign" type="object"
-                            groups="asset_management.asset_hod,asset_management.asset_fm,asset_management.asset_md"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,assigned,unassigned"/>
+                            groups="asset_management.asset_dm,asset_management.asset_cd"/>
+                    <button name="button_line_manager_reject" states="send_request" string="Reject" type="object"
+                            groups="asset_management.asset_lm"/>
+                    <button name="button_line_manager_back_to_draft" states="send_request" string="Back to Draft"
+                            type="object"
+                            groups="asset_management.asset_lm"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,send_request,line_manager,procurement,assigned,unassigned"/>
                 </header>
                 <sheet>
-                    <group string="Assigned To">
-                        <field name="assigned_person"/>
+                    <group string="Employee">
+                        <group>
+                            <field name="assigned_person"/>
+                            <field name="job_title"/>
+                        </group>
+                        <group>
+                            <field name="department_id"/>
+                        </group>
+                    </group>
+                    <group string="Attachment">
+                        <field name="attachment" filename="attachment_name"/>
+                        <field name="attachment_name" invisible="1"/>
                     </group>
                     <notebook>
-                        <page string="Assets To Assign">
-                            <field name="asset_ids" attrs="{'readonly': [('state', 'in', ('approved','unassigned'))]}" domain="[('assigned','=', False)]">
+                        <page string="Asset request">
+                            <field name="asset_category_ids"
+                                   attrs="{'readonly': [('state', 'in', ('line_manager','procurement','assigned'))]}">
+                                <tree editable="bottom">
+                                    <field name="name" string="Asset"
+                                           options="{'no_create_edit': True, 'no_create': True, 'no_open': True}"/>
+                                    <field name="asset_name"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Assets To Assign"
+                              attrs="{'invisible': [('state', 'in', ('draft', 'send_request'))]}">
+                            <field name="asset_ids" attrs="{'readonly': [('state', 'in', ('approved','unassigned'))]}"
+                                   domain="[('assigned','=', False)]">
                                 <tree>
-                                    <field name="name" />
-                                    <field name="category_id" />
-                                    <field name="value" />
-                                    <field name="state" />
+                                    <field name="name"/>
+                                    <field name="asset_id_no"/>
+                                    <field name="category_id"/>
+                                    <field name="date"/>
+                                    <field name="value"/>
+                                    <field name="state"/>
                                 </tree>
                             </field>
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>
 
     <record id="action_asset_assign" model="ir.actions.act_window">
-        <field name="name">Asset Assignment</field>
+        <field name="name">Asset Custodian</field>
         <field name="res_model">account.asset.assign</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
-          <p class="o_view_nocontent_smiling_face">
-              Ready to create a asset assignment?
-          </p><p>
-              Let's create a asset assignment.
-          </p>
+            <p class="o_view_nocontent_smiling_face">
+                Ready to create asset Custodian?
+            </p>
+            <p>
+                Let's create a asset Custodian.
+            </p>
         </field>
     </record>
 
-      <menuitem
-        parent="asset_management.menu_root"
-        id="menu_asset_assign"
-        action="action_asset_assign"
-        sequence="4"
-        groups="asset_management.asset_hod,asset_management.asset_fm,asset_management.asset_md"/>
+    <menuitem
+            parent="asset_management.menu_root"
+            id="menu_asset_assign"
+            name="Asset Custodian"
+            action="action_asset_assign"
+            sequence="4"
+            groups="asset_management.all_staff,asset_management.all_ict_officer,asset_management.asset_procurement_ho,asset_management.asset_procurement_branch,asset_management.asset_fm_ho,asset_management.asset_fm_branch,asset_management.asset_lm,asset_management.asset_dm"/>
 </odoo>

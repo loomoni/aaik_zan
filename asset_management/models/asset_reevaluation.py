@@ -25,16 +25,24 @@ class AssetReevaluation(models.Model):
 
     STATE_SELECTION = [
         ("draft", "Draft"),
-        ("fm_approved", "FM Approved"),
         ("asset_evaluated", "Asset Evaluated"),
+        ("fm_review", "FM Reviewed"),
         ("md_approved", "MD Approved"),
         ("asset_reevaluated", "Asset Reevaluated"),
         ("rejected", "Rejected"),
     ]
 
+    def _default_employee(self):
+        employee = self.env['hr.employee'].sudo().search(
+            [('user_id', '=', self.env.uid)], limit=1)
+        if employee:
+            return employee.id
+
     date_created = fields.Date('Date / Time', readonly=True, required=True, index=True,
                                default=fields.Date.context_today, store=True)
     name = fields.Char(string='Reference',required=True)
+    employee_id = fields.Many2one('hr.employee', 'Employee Name', default=_default_employee)
+    reevaluation_reason = fields.Text(string='Reevaluation Reason', required=True)
     state = fields.Selection(STATE_SELECTION, index=True, track_visibility='onchange', required=True, copy=False,
                              default='draft')
     asset_id = fields.Many2one('account.asset.asset', string='Asset', required=True, domain=[('state','=','open')])
@@ -59,8 +67,8 @@ class AssetReevaluation(models.Model):
         return True
 
     @api.multi
-    def button_fm_approve(self):
-        self.write({'state': 'fm_approved'})
+    def button_fm_review(self):
+        self.write({'state': 'fm_review'})
         return True
 
     @api.multi
@@ -300,6 +308,7 @@ class AssetReevaluationDepreciationLines(models.Model):
     sequence = fields.Integer(required=True)
     asset_id = fields.Many2one('account.asset.asset', string='Asset', required=True, ondelete='cascade')
     parent_state = fields.Selection(related='asset_id.state', string='State of Asset')
+    reason_for_disposal = fields.Text(string='Reason for Disposal')
     amount = fields.Float(string='Current Depreciation', digits=0, required=True)
     remaining_value = fields.Float(string='Next Period Depreciation', digits=0, required=True)
     depreciated_value = fields.Float(string='Cumulative Depreciation', required=True)
